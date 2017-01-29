@@ -1,6 +1,6 @@
 import xs from 'xstream'
 
-function makeWSDriver({ domain = 'localhost', port = 8080 }) {
+export function makeWSDriver({ domain = 'localhost', port = 8080 }) {
   const ws = new WebSocket(`ws://${domain}:${port}`)
 
   function wsDriver(outgoing$) {

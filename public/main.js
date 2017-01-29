@@ -1,13 +1,9 @@
-console.log('main start')
-
 import xs from 'xstream'
 import isolate from '@cycle/isolate'
 import { run } from '@cycle/xstream-run'
 import { makeDOMDriver, div, h1 } from '@cycle/dom'
 import { makeWSDriver } from './drivers/websocket'
 import Board from './components/Board'
-
-console.log('main start')
 
 function main(sources) {
   const incoming$ = sources.websocket
@@ -36,8 +32,6 @@ function main(sources) {
     DOM: vdom$
   }
 }
-
-console.log("before run")
 
 run(main, {
   websocket: makeWSDriver({domain: 'localhost', port: 8080}),

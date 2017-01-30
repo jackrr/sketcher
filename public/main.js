@@ -6,10 +6,13 @@ import { makeWSDriver } from './drivers/websocket'
 import Board from './components/Board'
 
 function main(sources) {
-  const incoming$ = sources.websocket
-  const sketch$ = incoming$
+  const sketch$ = sources.websocket
     .filter(message => message.type === 'SKETCH')
-    .fold((sketches, sketch) => sketches.push(sketch), [])
+    .map(message => message.sketch)
+    .fold((sketches, sketch) => {
+      sketches.push(sketch)
+      return sketches
+    }, [])
 
   const boardSources = {
     DOM: sources.DOM,
@@ -18,19 +21,24 @@ function main(sources) {
   }
 
   const board = isolate(Board)(boardSources)
-  const outgoing$ = board.sketch
+
+  const outgoing$ = board.sketches
   const boardDom$ = board.DOM
-  const vdom$ = boardDom$.map(boardDom =>
-    div([
-      h1('Hello world!'),
+
+  const vdom$ = boardDom$.map(boardDom => {
+    const res = div([
+      h1('.title', 'Hello world!'),
       boardDom
     ])
-  )
+    return res
+  })
 
-  return {
-    websocket: outgoing$,
-    DOM: vdom$
+  const sinks = {
+    DOM: vdom$,
+    websocket: outgoing$
   }
+
+  return sinks
 }
 
 run(main, {

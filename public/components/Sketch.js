@@ -1,26 +1,23 @@
+import xs from 'xstream'
 import { div } from '@cycle/dom'
 
-function intent(DOM) {
-  return xs.never()
-}
-
 function model(prop$) {
-  return prop$.map(props => props.sketch)
+  return prop$
 }
 
 function view(state$) {
-  return state$.map(state =>
-    div(`Sketch ${state.title}`)
-  )
+  return state$.map(state => {
+    console.log("making view", state)
+    return div(`Sketch ${state.title}`)
+  })
 }
 
 export default function Sketch(sources) {
-  const action$ = intent(sources.DOM)
   const state$ = model(sources.props)
-  const vdom$ = view(state$)
+  const vtree$ = view(state$)
 
   const sinks = {
-    DOM: vdom$
+    DOM: vtree$
   }
 
   return sinks

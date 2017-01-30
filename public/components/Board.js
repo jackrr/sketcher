@@ -1,51 +1,57 @@
+import xs from 'xstream'
+import isolate from '@cycle/isolate'
 import { div, h2 } from '@cycle/dom'
 import Sketch from './Sketch'
 
 function intent(DOM) {
-  // no op (for now)
-  return xs.never()
+  return DOM.select('.board').events('mousedown')
+    .map(ev => {
+      console.log('click', ev)
+      return { type: 'SKETCH', x: ev.offsetX, y: ev.offsetY }
+     })
+    .startWith({})
 }
 
-function model(prop$, sketch$) {
-  return prop$
+function model(props$, sketch$, action$) {
+  return props$
     .map(props => sketch$
-      .map(sketches => {
-        return {
-          sketches,
-          name: props.name
-        }
-      })
+      .map(sketches => action$
+        .filter(action => action.type === 'SKETCH')
+        .fold((localSketches, localSketch) => {
+          localSketches.push(localSketch)
+          return localSketches
+        }, [])
+        .map(localSketches => {
+          return {
+            sketches: sketches.concat(localSketches),
+            name: props.name
+          }
+        })
+      ).flatten()
     )
     .flatten()
     .remember()
 }
 
-function view(state$, makeSketch) {
-  return state$.map(state =>
-    div([
-      h2(`${state.name} Board`),
-      div(state.sketches.map(makeSketch))
-    ])
-  )
+function sketchDom(sketch) {
+  return div('.sketch', {style: { top: `${sketch.y}.px`, left: `${sketch.x}.px` }})
 }
 
-function makeSketchMaker(DOM) {
-  return function(sketch) {
-    return isolate(Sketch)({
-      DOM: DOM,
-      props: xs.of({ sketch })
-    }).DOM
-  }
+function view(state$) {
+  return state$.map(state => {
+    const sketches = state.sketches.map(sketchDom)
+    return div('.board', [sketches])
+  })
 }
 
 export default function Board(sources) {
   const action$ = intent(sources.DOM)
-  const state$ = model(sources.props, sources.sketches)
-  const vdom$ = view(state$, makeSketchMaker(sources.DOM))
+  const state$ = model(sources.props, sources.sketches, action$)
+  const vtree$ = view(state$)
 
   const sinks = {
-    DOM: vdom$,
-    sketch: action$.filter(action => action.type === 'SKETCH')
+    DOM: vtree$,
+    sketches: action$.filter(action => action.type === 'SKETCH')
   }
 
   return sinks

@@ -1,29 +1,67 @@
 import xs from 'xstream'
 import isolate from '@cycle/isolate'
-import { div, h2 } from '@cycle/dom'
+import { div } from '@cycle/dom'
 import Sketch from './Sketch'
 
-function intent(DOM) {
-  return DOM.select('.board').events('mousedown')
-    .map(ev => {
-      console.log('click', ev)
-      return { type: 'SKETCH', x: ev.offsetX, y: ev.offsetY }
-     })
-    .startWith({})
+function positionData(mouseEvent) {
+  return {
+    x: mouseEvent.offsetX,
+    y: mouseEvent.offsetY
+  }
 }
 
-function model(props$, sketch$, action$) {
+function mobile() {
+  return navigator.userAgent.match(/iphone|Android/ig)
+}
+
+function browserIntent(DOM) {
+  const mouseEvent$ = xs.merge(
+    DOM.select('.board').events('mousedown'),
+    DOM.select('.board').events('mousemove'),
+    DOM.select('.board').events('mouseup')
+  )
+
+  const drawing$ = mouseEvent$
+    .fold((drawing, me) => {
+      if (me.type === 'mousedown') return true
+      if (me.type === 'mouseup') return false
+
+      return drawing
+    })
+
+  const point$ = xs.combine(mouseEvent$, drawing$)
+    .filter(([me, drawing]) => drawing)
+    .map(([me, drawing]) => {
+      console.log(me, drawing)
+      return positionData(me)
+    })
+
+  return point$
+}
+
+function mobileIntent(DOM) {
+  return xs.never()
+}
+
+function intent(DOM) {
+  if (mobile()) {
+    return mobileIntent(DOM)
+  }
+
+  return browserIntent(DOM)
+}
+
+function model(props$, point$, myPoint$) {
   return props$
-    .map(props => sketch$
-      .map(sketches => action$
-        .filter(action => action.type === 'SKETCH')
-        .fold((localSketches, localSketch) => {
-          localSketches.push(localSketch)
-          return localSketches
+    .map(props => point$
+      .map(points => myPoint$
+        .fold((myPoints, myPoint) => {
+          myPoints.push(myPoint)
+          return myPoints
         }, [])
-        .map(localSketches => {
+        .map(myPoints => {
           return {
-            sketches: sketches.concat(localSketches),
+            points: points.concat(myPoints),
             name: props.name
           }
         })
@@ -33,25 +71,25 @@ function model(props$, sketch$, action$) {
     .remember()
 }
 
-function sketchDom(sketch) {
-  return div('.sketch', {style: { top: `${sketch.y}.px`, left: `${sketch.x}.px` }})
+function pointDom(p) {
+  return div('.point', {style: { top: `${p.y}.px`, left: `${p.x}.px` }})
 }
 
 function view(state$) {
-  return state$.map(state => {
-    const sketches = state.sketches.map(sketchDom)
-    return div('.board', [sketches])
-  })
+  return state$
+    .map(state =>
+      div('.board', state.points.map(p => pointDom(p)))
+    )
 }
 
 export default function Board(sources) {
-  const action$ = intent(sources.DOM)
-  const state$ = model(sources.props, sources.sketches, action$)
+  const myPoint$ = intent(sources.DOM)
+  const state$ = model(sources.props, sources.points, myPoint$)
   const vtree$ = view(state$)
 
   const sinks = {
     DOM: vtree$,
-    sketches: action$.filter(action => action.type === 'SKETCH')
+    points: myPoint$
   }
 
   return sinks

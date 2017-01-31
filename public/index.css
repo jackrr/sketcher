@@ -3,7 +3,7 @@
   text-align: center;
 }
 
-.board {
+#board {
   width: 1000px;
   height: 1000px;
   border: solid 2px black;

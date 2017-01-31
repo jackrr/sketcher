@@ -1,5 +1,11 @@
 import xs from 'xstream'
 
+// WebSocket readyState constants:
+const CONNECTING = 0 // The connection is not yet open.
+const OPEN       = 1 // The connection is open and ready to communicate.
+const CLOSING    = 2 // The connection is in the process of closing.
+const CLOSED     = 3 // The connection is closed or couldn't be opened.
+
 function fakeWS() {
   return {
     send: (msg) => { console.log(`[fakeWS] ${msg}`) },
@@ -10,28 +16,29 @@ function fakeWS() {
   }
 }
 
-function getWS(url) {
-  let ws
+export function makeWSDriver({ domain = 'localhost', port = 8080 }) {
+  const ws = new WebSocket(`ws://${domain}:${port}`)
+  let queue = []
 
-  try {
-    // ws = new WebSocket(url)
-    ws = fakeWS()
-  } catch (err) {
-    console.log("Error setting up websocket connection to server", err)
-    ws = fakeWS()
+  function send(message) {
+    ws.send(JSON.stringify(message))
   }
 
-  return ws
-}
-
-export function makeWSDriver({ domain = 'localhost', port = 8080 }) {
-  const ws = getWS(`ws://${domain}:${port}`)
+  function flushQueue() {
+    queue.map(outgoing => {
+      send(outgoing)
+    })
+    queue = []
+  }
 
   function wsDriver(outgoing$) {
     outgoing$.addListener({
       next: outgoing => {
-        console.log(`Sending ${outgoing} on websocket`)
-        ws.send(outgoing)
+        if (ws.readyState === OPEN) {
+          send(outgoing)
+        } else {
+          queue.push(outgoing)
+        }
       },
       error: () => {},
       complete: () => {}
@@ -39,8 +46,11 @@ export function makeWSDriver({ domain = 'localhost', port = 8080 }) {
 
     return xs.create({
       start: listener => {
-        ws.addEventListener('message', function(message) {
-          listener.next(message)
+        ws.addEventListener('open', ev => {
+          flushQueue()
+          ws.addEventListener('message', incoming => {
+            listener.next(JSON.parse(incoming.data))
+          })
         })
       },
       stop: () => {

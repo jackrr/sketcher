@@ -3,10 +3,11 @@ import isolate from '@cycle/isolate'
 import { div } from '@cycle/dom'
 import Sketch from './Sketch'
 
-function positionData(mouseEvent) {
+function pointData(mouseEvent) {
   return {
     x: mouseEvent.offsetX,
-    y: mouseEvent.offsetY
+    y: mouseEvent.offsetY,
+    type: 'P'
   }
 }
 
@@ -32,8 +33,7 @@ function browserIntent(DOM) {
   const point$ = xs.combine(mouseEvent$, drawing$)
     .filter(([me, drawing]) => drawing)
     .map(([me, drawing]) => {
-      console.log(me, drawing)
-      return positionData(me)
+      return pointData(me)
     })
 
   return point$

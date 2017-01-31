@@ -7,7 +7,14 @@ import Board from './components/Board'
 
 function main(sources) {
   const point$ = sources.websocket
-    .filter(message => message.type === 'POINT')
+    .filter(message => message.type === 'P')
+    .fold((points, point) => {
+      points.push(point)
+      return points
+    }, [])
+
+  const line$ = sources.websocket
+    .filter(message => message.type === 'L')
     .fold((points, point) => {
       points.push(point)
       return points

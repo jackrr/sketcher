@@ -6,14 +6,34 @@ Error.stackTraceLimit = 100;
 const app = express()
 app.use(express.static('public'))
 
+/*
+*
+* Board state
+*
+*/
+let points = []
+
+/*
+*
+* "secret" state reset endpoint
+*
+*/
+app.get('/reset', (req, res) => {
+  points = []
+  res.status(200).send({ status: 'ok' })
+})
+
 app.listen(5000)
 
+/*
+*
+* Websockets
+*
+*/
 const wss = new WebSocket.Server({
   perMessageDeflate: false,
   port: 8080
 });
-
-let points = []
 
 function saveMessage(message) {
   points.push(message)

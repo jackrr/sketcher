@@ -1,7 +1,7 @@
 # Sketcher
 
 A collaborative sketchpad app. Proof of concept using
-[CycleJS](https://cycle.js.org/) in the client and websockets to transfer
+[Cycle.js](https://cycle.js.org/) in the client and websockets to transfer
 sketch interactions.
 
 ## To run a server

@@ -7,6 +7,19 @@ function mobile() {
   return navigator.userAgent.match(/iphone|Android/ig)
 }
 
+function whenDrawing(interaction$) {
+  return interaction$
+    .fold((acc, interaction) => {
+      let drawing = acc.drawing
+      if (interaction.type === 'S') drawing = true
+      if (interaction.type === 'E') drawing = false
+
+      return { drawing, interaction }
+    }, { drawing: false, interaction: null })
+    .filter(payload => payload.drawing)
+    .map(payload => payload.interaction)
+}
+
 function browserIntent(DOM) {
   const mouseEvent$ = xs.merge(
     DOM.select('#board').events('mousedown'),
@@ -23,22 +36,35 @@ function browserIntent(DOM) {
     return {x, y, type}
   })
 
-  const point$ = mouseEvent$
-    .fold((acc, me) => {
-      let drawing = acc.drawing
-      if (me.type === 'S') drawing = true
-      if (me.type === 'E') drawing = false
-
-      return { drawing, me }
-    }, { drawing: false, me: null })
-    .filter(payload => payload.drawing)
-    .map(payload => payload.me)
-
-  return point$
+  return whenDrawing(mouseEvent$)
 }
 
 function mobileIntent(DOM) {
-  return xs.never()
+  const touchEvent$ = xs.merge(
+    DOM.select('#board').events('touchstart'),
+    DOM.select('#board').events('touchmove'),
+    DOM.select('#board').events('touchend')
+  ).map(({ type, touches, target }) => {
+    if (type === 'touchstart') {
+      type = 'S'
+    } else if (type === 'touchmove') {
+      type = 'P'
+    } else {
+      type = 'E'
+    }
+
+    let x
+    let y
+
+    if (touches.length) {
+      x = touches[0].pageX - target.offsetLeft
+      y = touches[0].pageY - target.offsetTop
+    }
+
+    return { type, x, y }
+  })
+
+  return whenDrawing(touchEvent$)
 }
 
 function intent(DOM) {
@@ -59,7 +85,7 @@ function model(props$) {
 function view(state$) {
   return state$
     .map(state =>
-      canvas('#board', { attrs: { height: 1000, width: 1000 }})
+      canvas('#board', { attrs: { height: 800, width: 800 }})
     )
 }
 

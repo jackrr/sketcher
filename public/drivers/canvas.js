@@ -25,8 +25,10 @@ function processMessage(message) {
     case 'P':
       ctx.lineTo(message.x, message.y)
     case 'E':
-      ctx.lineTo(message.x, message.y)
-      ctx.stroke()
+      if (message.x && message.y) {
+        ctx.lineTo(message.x, message.y)
+        ctx.stroke()
+      }
   }
 }
 

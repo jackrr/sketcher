@@ -4,6 +4,7 @@ module.exports = {
     path: './public/bin',
     filename: 'main.bundle.js'
   },
+  devtool: 'source-map',
   module: {
     loaders: [{
       test: /\.json?$/,

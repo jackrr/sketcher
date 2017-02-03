@@ -8,7 +8,9 @@ import Board from './components/Board'
 
 function main(sources) {
   const point$ = sources.websocket
-    .filter(message => message.type === 'P')
+    .filter(message => {
+      return message.type === 'P' || message.type == 'S' || message.type === 'E'
+    })
 
   const boardSources = {
     DOM: sources.DOM,
@@ -19,19 +21,16 @@ function main(sources) {
   const board = isolate(Board)(boardSources)
 
   const boardDom$ = board.DOM
-  const outgoing$ = board.points
-  const canva$ = board.canvas
-
   const vdom$ = boardDom$.map(boardDom => div('.app',
-  [
-    h1('.title', 'Hello world!'),
-    boardDom
-  ]))
+    [
+      h1('.title', 'Hello world!'),
+      boardDom
+    ]))
 
   const sinks = {
     DOM: vdom$,
-    websocket: outgoing$,
-    canvas: canva$
+    websocket: board.points,
+    canvas: board.canvas
   }
 
   return sinks

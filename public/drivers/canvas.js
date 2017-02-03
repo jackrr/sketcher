@@ -11,20 +11,19 @@ function ensureCanvas(selector) {
     queue.map(m => processMessage(m))
     queue = []
   } else {
-    console.log('delaying')
     setTimeout(assignCanvas, 10)
   }
 }
 
 function processMessage(message) {
-  console.log('incoming', message)
   switch (message.type) {
-    case 'ST':
+    case 'S':
       ctx.beginPath()
+      ctx.lineWidth = 2
+      ctx.strokeStyle = "#ffffff"
       ctx.moveTo(message.x, message.y)
     case 'P':
       ctx.lineTo(message.x, message.y)
-      ctx.stroke()
     case 'E':
       ctx.lineTo(message.x, message.y)
       ctx.stroke()

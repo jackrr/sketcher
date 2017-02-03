@@ -1,6 +1,6 @@
 import xs from 'xstream'
 import isolate from '@cycle/isolate'
-import { canvas, div } from '@cycle/dom'
+import { canvas } from '@cycle/dom'
 import Sketch from './Sketch'
 
 function mobile() {
@@ -9,10 +9,10 @@ function mobile() {
 
 function browserIntent(DOM) {
   const mouseEvent$ = xs.merge(
-    DOM.select('.board').events('mousedown'),
-    DOM.select('.board').events('mousemove'),
-    DOM.select('.board').events('mouseup')
-  ).map(({ x: offsetX, y: offsetY, type }) => {
+    DOM.select('#board').events('mousedown'),
+    DOM.select('#board').events('mousemove'),
+    DOM.select('#board').events('mouseup')
+  ).map(({ offsetX: x, offsetY: y, type }) => {
     if (type === 'mousedown') {
       type = 'S'
     } else if (type === 'mousemove') {
@@ -23,17 +23,16 @@ function browserIntent(DOM) {
     return {x, y, type}
   })
 
-  const drawing$ = mouseEvent$
-    .fold((drawing, me) => {
-      if (me.type === 'S') return true
-      if (me.type === 'E') return false
+  const point$ = mouseEvent$
+    .fold((acc, me) => {
+      let drawing = acc.drawing
+      if (me.type === 'S') drawing = true
+      if (me.type === 'E') drawing = false
 
-      return drawing
-    })
-
-  const point$ = xs.combine(mouseEvent$, drawing$)
-    .filter(([me, drawing]) => drawing)
-    .map(([me, drawing]) => me)
+      return { drawing, me }
+    }, { drawing: false, me: null })
+    .filter(payload => payload.drawing)
+    .map(payload => payload.me)
 
   return point$
 }
@@ -60,7 +59,7 @@ function model(props$) {
 function view(state$) {
   return state$
     .map(state =>
-      canvas('#board')
+      canvas('#board', { attrs: { height: 1000, width: 1000 }})
     )
 }
 
@@ -69,13 +68,10 @@ export default function Board(sources) {
   const state$ = model(sources.props)
   const vtree$ = view(state$)
 
-  sources.points.map(s => {console.log(s)})
-  state$.map(s => {console.log(s)})
-
   const sinks = {
     DOM: vtree$,
     points: point$,
-    canvas: xs.merge(point$, sources.point$)
+    canvas: xs.merge(point$, sources.points)
   }
 
   return sinks

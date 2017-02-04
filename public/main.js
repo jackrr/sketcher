@@ -37,7 +37,7 @@ function main(sources) {
 }
 
 run(main, {
-  websocket: makeWSDriver({domain: 'localhost', port: 8080}),
+  websocket: makeWSDriver({ domain: window.location.hostname, port: 8080 }),
   DOM: makeDOMDriver('#main'),
   canvas: makeCanvasDriver('#board')
 })

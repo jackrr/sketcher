@@ -12,17 +12,19 @@ function asLinePoints(interaction$) {
     .fold((acc, interaction) => {
       let drawing = acc.drawing
       let line = acc.line
-      if (interaction.type === 'S') drawing = true
-      if (interaction.type === 'E') {
-        drawing = false
+      if (interaction.type === 'S') {
+        drawing = true
         line++
       }
 
-      // BUG: losing 'E' interactions
+      if (interaction.type === 'E') {
+        drawing = false
+      }
+      const keep = drawing || interaction.type === 'E'
 
-      return { drawing, interaction, line }
-    }, { drawing: false, interaction: null, line: 1 })
-    .filter(payload => payload.drawing)
+      return { drawing, interaction, line, keep }
+    }, { drawing: false, interaction: null, line: 0, keep: false })
+    .filter(payload => payload.keep)
     .map(payload => {
       return {
         ...payload.interaction,
@@ -104,7 +106,7 @@ function view(state$) {
     .map(state =>
       div('.board-area', [
         canvas('#board', { attrs: { height: 800, width: 800 }}),
-        a('.reset', 'RESET!')
+        a('.reset', '(reset)')
       ])
     )
 }

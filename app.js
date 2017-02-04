@@ -34,12 +34,22 @@ function sendPoints(client) {
   })
 }
 
+function sendReset(client) {
+  client.send(JSON.stringify({ type: 'RESET' }))
+}
+
+function sendId(client) {
+  client.send(JSON.stringify({ type: 'CLIENT_ID', id: nextId() }))
+}
+
 function resetBoard() {
   console.log('Resetting')
   points = []
+  currentId = 0
 
   wss.clients.forEach(client => {
-    client.send(JSON.stringify({ type: 'RESET' }))
+    sendReset(client)
+    sendId(client)
   })
 }
 
@@ -50,7 +60,7 @@ function resetBoard() {
 */
 wss.on('connection', (ws) => {
   sendPoints(ws)
-  ws.send(JSON.stringify({ type: 'CLIENT_ID', id: nextId() }))
+  sendId(ws)
 
   ws.on('message', (message) => {
     saveMessage(message)

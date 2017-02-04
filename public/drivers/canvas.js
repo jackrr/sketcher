@@ -41,15 +41,19 @@ function drawPoint(point) {
     startPath(point)
   } else {
     if (currentLid != point.lid) {
-      console.log('mismatch', currentLid, point.lid, lastPoints[point.lid])
       startPath(lastPoints[point.lid])
     }
 
     lineTo(point)
   }
 
-  currentLid = point.lid
-  lastPoints[currentLid] = point
+  if (point.type === 'E') {
+    delete lastPoints[point.lid]
+    console.log(point, lastPoints)
+  } else {
+    currentLid = point.lid
+    lastPoints[currentLid] = point
+  }
 }
 
 function processMessage(message) {

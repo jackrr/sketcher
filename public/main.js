@@ -31,7 +31,7 @@ function main(sources) {
   const boardDom$ = board.DOM
   const vdom$ = boardDom$.map(boardDom => div('.app',
     [
-      h1('.title', 'Hello world!'),
+      h1('.title', 'sketch!'),
       boardDom
     ]))
 

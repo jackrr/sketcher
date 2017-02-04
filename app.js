@@ -16,12 +16,11 @@ const wss = new WebSocket.Server({
 *
 */
 let points = []
+let currentId = 0
 
-/*
-*
-* Websockets
-*
-*/
+function nextId() {
+  return currentId++
+}
 
 function saveMessage(message) {
   points.push(message)
@@ -44,8 +43,14 @@ function resetBoard() {
   })
 }
 
+/*
+*
+* Websockets
+*
+*/
 wss.on('connection', (ws) => {
   sendPoints(ws)
+  ws.send(JSON.stringify({ type: 'CLIENT_ID', id: nextId() }))
 
   ws.on('message', (message) => {
     saveMessage(message)

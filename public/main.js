@@ -16,6 +16,10 @@ function main(sources) {
   const reset$ = sources.websocket
     .filter(message => message.type === 'RESET')
 
+  const userId$ = sources.websocket
+    .filter(message => message.type === 'CLIENT_ID')
+    .map(message => message.id)
+
   const boardSources = {
     DOM: sources.DOM,
     props: xs.of({ name: 'Test' }),
@@ -31,10 +35,18 @@ function main(sources) {
       boardDom
     ]))
 
+  const signedPoint$ = xs.combine(board.points, userId$)
+    .map(([point, userId]) => {
+      return {
+        ...point,
+        lid: `${userId}-${point.lid}`
+      }
+    })
+
   const sinks = {
     DOM: vdom$,
-    websocket: board.points,
-    canvas: xs.merge(board.points, point$, reset$),
+    websocket: signedPoint$,
+    canvas: xs.merge(signedPoint$, point$, reset$),
     HTTP: board.requests
   }
 

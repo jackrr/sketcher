@@ -1,6 +1,8 @@
 import xs from 'xstream'
 
 let ctx = null
+let lastPoints = {}
+let currentLid = null
 let queue = []
 
 function ensureCanvas(selector) {
@@ -15,28 +17,46 @@ function ensureCanvas(selector) {
   }
 }
 
+function reset() {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  lastPoints = {}
+}
+
+function startPath({ x, y }) {
+  ctx.beginPath()
+  ctx.lineWidth = 2
+  ctx.strokeStyle = "#ffffff"
+  ctx.moveTo(x, y)
+}
+
+function lineTo({ x, y }) {
+  if (x && y) {
+    ctx.lineTo(x, y)
+    ctx.stroke()
+  }
+}
+
+function drawPoint(point) {
+  if (point.type === 'S') {
+    startPath(point)
+  } else {
+    if (currentLid != point.lid) {
+      console.log('mismatch', currentLid, point.lid, lastPoints[point.lid])
+      startPath(lastPoints[point.lid])
+    }
+
+    lineTo(point)
+  }
+
+  currentLid = point.lid
+  lastPoints[currentLid] = point
+}
+
 function processMessage(message) {
-  // console.log(message, message.type)
-  switch (message.type) {
-    case 'S':
-      ctx.beginPath()
-      ctx.lineWidth = 2
-      ctx.strokeStyle = "#ffffff"
-      ctx.moveTo(message.x, message.y)
-      break;
-    case 'P':
-      ctx.lineTo(message.x, message.y)
-      ctx.stroke()
-      break;
-    case 'E':
-      if (message.x && message.y) {
-        ctx.lineTo(message.x, message.y)
-        ctx.stroke()
-      }
-      break;
-    case 'RESET':
-      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-      break;
+  if (message.type == 'RESET') {
+    reset()
+  } else {
+    drawPoint(message)
   }
 }
 

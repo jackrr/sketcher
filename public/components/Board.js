@@ -7,17 +7,28 @@ function mobile() {
   return navigator.userAgent.match(/iphone|Android/ig)
 }
 
-function whenDrawing(interaction$) {
+function asLinePoints(interaction$) {
   return interaction$
     .fold((acc, interaction) => {
       let drawing = acc.drawing
+      let line = acc.line
       if (interaction.type === 'S') drawing = true
-      if (interaction.type === 'E') drawing = false
+      if (interaction.type === 'E') {
+        drawing = false
+        line++
+      }
 
-      return { drawing, interaction }
-    }, { drawing: false, interaction: null })
+      // BUG: losing 'E' interactions
+
+      return { drawing, interaction, line }
+    }, { drawing: false, interaction: null, line: 1 })
     .filter(payload => payload.drawing)
-    .map(payload => payload.interaction)
+    .map(payload => {
+      return {
+        ...payload.interaction,
+        lid: payload.line
+      }
+    })
 }
 
 function browserIntent(DOM) {
@@ -36,7 +47,7 @@ function browserIntent(DOM) {
     return {x, y, type}
   })
 
-  return whenDrawing(mouseEvent$)
+  return asLinePoints(mouseEvent$)
 }
 
 function mobileIntent(DOM) {
@@ -64,7 +75,7 @@ function mobileIntent(DOM) {
     return { type, x, y }
   })
 
-  return whenDrawing(touchEvent$)
+  return asLinePoints(touchEvent$)
 }
 
 function intent(DOM) {

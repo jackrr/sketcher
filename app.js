@@ -1,13 +1,11 @@
 const express = require('express')
 const WebSocket = require('ws');
+const PRODUCTION = process.env.NODE_ENV === 'production'
+
 Error.stackTraceLimit = 100;
 
 const app = express()
-const PRODUCTION = process.env.NODE_ENV === 'production'
-
-if (!PRODUCTION) {
-  app.use(express.static('public'))
-}
+app.use(express.static('public'))
 
 /*
 *

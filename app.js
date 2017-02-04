@@ -82,7 +82,7 @@ app.use(express.static('public'))
 
 app.get('/reset', (req, res) => {
   resetBoard()
-  res.status(200).send({ status: 'ok' })
+  res.status(200).send({ message: 'DONE' })
 })
 
 app.listen(5000)

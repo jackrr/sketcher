@@ -8,13 +8,13 @@ import { makeHTTPDriver } from '@cycle/http'
 import Board from './components/Board'
 
 function main(sources) {
-  const point$ = sources.websocket
+  const canvasEvent$ = sources.websocket
     .filter(message => {
-      return message.type === 'P' || message.type === 'S' || message.type === 'E'
+      return message.type === 'P' ||
+             message.type === 'S' ||
+             message.type === 'E' ||
+             message.type === 'RESET'
     })
-
-  const reset$ = sources.websocket
-    .filter(message => message.type === 'RESET')
 
   const userId$ = sources.websocket
     .filter(message => message.type === 'CLIENT_ID')
@@ -35,18 +35,20 @@ function main(sources) {
       boardDom
     ]))
 
+  // Known issue: incoming reset message
+  // triggers stream re-emit of last point
   const signedPoint$ = xs.combine(board.points, userId$)
     .map(([point, userId]) => {
       return {
         ...point,
-        lid: `${userId}-${point.lid}`
+        uid: userId,
       }
     })
 
   const sinks = {
     DOM: vdom$,
     websocket: signedPoint$,
-    canvas: xs.merge(signedPoint$, point$, reset$),
+    canvas: xs.merge(signedPoint$, canvasEvent$),
     HTTP: board.requests
   }
 

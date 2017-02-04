@@ -2,7 +2,7 @@ import xs from 'xstream'
 
 let ctx = null
 let lastPoints = {}
-let currentLid = null
+let currentLineId = null
 let queue = []
 
 function ensureCanvas(selector) {
@@ -29,31 +29,33 @@ function startPath({ x, y }) {
   ctx.moveTo(x, y)
 }
 
-function lineTo({ x, y }) {
+function traceTo({ x, y }) {
   if (x && y) {
     ctx.lineTo(x, y)
     ctx.stroke()
   }
 }
 
+function lineId(point) {
+  return `${point.uid}-${point.lid}`
+}
+
 function drawPoint(point) {
+  const lid = lineId(point)
+
+  if (point.type === 'E') {
+    return delete lastPoints[lid]
+  }
+
   if (point.type === 'S') {
     startPath(point)
   } else {
-    if (currentLid != point.lid) {
-      startPath(lastPoints[point.lid])
-    }
-
-    lineTo(point)
+    startPath(lastPoints[lid])
+    traceTo(point)
   }
 
-  if (point.type === 'E') {
-    delete lastPoints[point.lid]
-    console.log(point, lastPoints)
-  } else {
-    currentLid = point.lid
-    lastPoints[currentLid] = point
-  }
+  currentLineId = lid
+  lastPoints[currentLineId] = point
 }
 
 function processMessage(message) {

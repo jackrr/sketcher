@@ -4,18 +4,22 @@ import { run } from '@cycle/xstream-run'
 import { makeDOMDriver, div, h1 } from '@cycle/dom'
 import { makeWSDriver } from './drivers/websocket'
 import { makeCanvasDriver } from './drivers/canvas'
+import { makeHTTPDriver } from '@cycle/http'
 import Board from './components/Board'
 
 function main(sources) {
   const point$ = sources.websocket
     .filter(message => {
-      return message.type === 'P' || message.type == 'S' || message.type === 'E'
+      return message.type === 'P' || message.type === 'S' || message.type === 'E'
     })
+
+  const reset$ = sources.websocket
+    .filter(message => message.type === 'RESET')
 
   const boardSources = {
     DOM: sources.DOM,
     props: xs.of({ name: 'Test' }),
-    points: point$
+    HTTP: sources.HTTP
   }
 
   const board = isolate(Board)(boardSources)
@@ -30,7 +34,8 @@ function main(sources) {
   const sinks = {
     DOM: vdom$,
     websocket: board.points,
-    canvas: board.canvas
+    canvas: xs.merge(board.points, point$, reset$),
+    HTTP: board.requests
   }
 
   return sinks
@@ -39,5 +44,6 @@ function main(sources) {
 run(main, {
   websocket: makeWSDriver({ domain: window.location.hostname, port: 8080 }),
   DOM: makeDOMDriver('#main'),
-  canvas: makeCanvasDriver('#board')
+  canvas: makeCanvasDriver('#board'),
+  HTTP: makeHTTPDriver()
 })

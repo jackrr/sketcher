@@ -2,3 +2,4 @@
 node_modules
 public/bin
 npm-debug.log
+nginx.config

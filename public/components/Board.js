@@ -1,6 +1,6 @@
 import xs from 'xstream'
 import isolate from '@cycle/isolate'
-import { canvas } from '@cycle/dom'
+import { canvas, div, a } from '@cycle/dom'
 import Sketch from './Sketch'
 
 function mobile() {
@@ -68,11 +68,17 @@ function mobileIntent(DOM) {
 }
 
 function intent(DOM) {
-  if (mobile()) {
-    return mobileIntent(DOM)
-  }
+  const point$ = mobile() ? mobileIntent(DOM) : browserIntent(DOM)
+  const request$ = DOM.select('a.reset').events('click')
+    .map(e => {
+      return {
+        url: '/reset',
+        method: 'GET',
+        category: 'reset'
+      }
+    })
 
-  return browserIntent(DOM)
+  return { point$, request$ }
 }
 
 function model(props$) {
@@ -85,19 +91,22 @@ function model(props$) {
 function view(state$) {
   return state$
     .map(state =>
-      canvas('#board', { attrs: { height: 800, width: 800 }})
+      div('.board-area', [
+        canvas('#board', { attrs: { height: 800, width: 800 }}),
+        a('.reset', 'RESET!')
+      ])
     )
 }
 
 export default function Board(sources) {
-  const point$ = intent(sources.DOM)
+  const { point$, request$ } = intent(sources.DOM)
   const state$ = model(sources.props)
   const vtree$ = view(state$)
 
   const sinks = {
     DOM: vtree$,
     points: point$,
-    canvas: xs.merge(point$, sources.points)
+    requests: request$
   }
 
   return sinks

@@ -11,10 +11,8 @@
   z-index: 1;
 }
 
-.point {
-  position: absolute;
-  height: 2px;
-  width: 2px;
-  border-radius: 50%;
-  background-color: black;
+a.reset {
+  display: block;
+  width: 4rem;
+  margin: 1rem auto;
 }

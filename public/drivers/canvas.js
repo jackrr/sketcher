@@ -16,19 +16,27 @@ function ensureCanvas(selector) {
 }
 
 function processMessage(message) {
+  // console.log(message, message.type)
   switch (message.type) {
     case 'S':
       ctx.beginPath()
       ctx.lineWidth = 2
       ctx.strokeStyle = "#ffffff"
       ctx.moveTo(message.x, message.y)
+      break;
     case 'P':
       ctx.lineTo(message.x, message.y)
+      ctx.stroke()
+      break;
     case 'E':
       if (message.x && message.y) {
         ctx.lineTo(message.x, message.y)
         ctx.stroke()
       }
+      break;
+    case 'RESET':
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+      break;
   }
 }
 

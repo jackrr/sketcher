@@ -2,9 +2,12 @@ const express = require('express')
 const WebSocket = require('ws');
 Error.stackTraceLimit = 100;
 
-
 const app = express()
-app.use(express.static('public'))
+const PRODUCTION = process.env.NODE_ENV === 'production'
+
+if (!PRODUCTION) {
+  app.use(express.static('public'))
+}
 
 /*
 *
@@ -32,7 +35,7 @@ app.listen(5000)
 */
 const wss = new WebSocket.Server({
   perMessageDeflate: false,
-  port: 8080
+  port: PRODUCTION ? 8000 : 8080
 });
 
 function saveMessage(message) {

@@ -37,12 +37,15 @@ function browserIntent(DOM) {
   const mouseEvent$ = xs.merge(
     DOM.select('#board').events('mousedown'),
     DOM.select('#board').events('mousemove'),
-    DOM.select('#board').events('mouseup')
+    DOM.select('#board').events('mouseup'),
+    DOM.select('#board').events('mouseleave')
   ).map(({ offsetX: x, offsetY: y, type }) => {
     if (type === 'mousedown') {
       type = 'S'
     } else if (type === 'mousemove') {
       type = 'P'
+    } else if (type === 'mouseleave') {
+      type = 'E'
     } else {
       type = 'E'
     }

@@ -77,7 +77,6 @@ function processMessage(message) {
 }
 
 export function makeCanvasDriver(selector) {
-
   function canvasDriver(outgoing$) {
     outgoing$.addListener({
       next: message => {

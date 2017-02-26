@@ -1,5 +1,8 @@
 body {
   background-color: #efefef;
+  position: fixed;
+  height: 100%;
+  width: 100%;
 }
 
 .app {

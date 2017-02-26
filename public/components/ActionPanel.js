@@ -1,5 +1,5 @@
 import xs from 'xstream'
-import { div, a } from '@cycle/dom'
+import { div, a, i } from '@cycle/dom'
 
 function intent(DOM) {
   const download$ = DOM.select('a.download').events('click')
@@ -25,8 +25,12 @@ function model() {
 function view(state$) {
   return state$.map(state =>
     div('.actions', [
-      a('.reset', '(reset)'),
-      a('.download', '(download)')
+      a('.reset', [
+        i('.material-icons', 'delete_forever')
+      ]),
+      a('.download', [
+        i('.material-icons', 'file_download')
+      ])
     ])
   )
 }

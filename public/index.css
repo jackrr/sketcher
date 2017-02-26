@@ -22,19 +22,26 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-around;
   width: 50%;
-  margin: 0 auto;
+  margin: 1rem auto;
 }
 
 a {
-  flex: 0 0 auto;
-  margin: 1rem auto;
-  color: blue;
+  flex: 1 0 auto;
   text-decoration: underline;
+  height: 3rem;
+  color: #111111;
+  border: 1px solid #111111;
+  padding-top: 0.6rem;
+}
+
+a > i.material-icons {
+  font-size: 2rem;
 }
 
 a:hover {
   cursor: pointer;
+  color: #000000;
+  border-color: #000000;
   background-color: #dddddd;
 }

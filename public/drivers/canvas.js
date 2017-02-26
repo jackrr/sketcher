@@ -1,13 +1,14 @@
 import xs from 'xstream'
 
 let ctx = null
+let elem = null
 let lastPoints = {}
 let currentLineId = null
 let queue = []
 
 function ensureCanvas(selector) {
   if (ctx) return;
-  let elem = document.querySelector(selector)
+  elem = document.querySelector(selector)
   if (elem) {
     ctx = elem.getContext('2d')
     queue.map(m => processMessage(m))
@@ -15,6 +16,13 @@ function ensureCanvas(selector) {
   } else {
     setTimeout(assignCanvas, 10)
   }
+}
+
+function download() {
+  const url = elem.toDataURL('image/png', 1.0).replace(/^data:image\/[^;]/, 'data:application/octet-stream')
+  const anchor = document.createElement('a')
+  anchor.setAttribute('href', url)
+  anchor.click()
 }
 
 function reset() {
@@ -59,8 +67,10 @@ function drawPoint(point) {
 }
 
 function processMessage(message) {
-  if (message.type == 'RESET') {
+  if (message.type === 'RESET') {
     reset()
+  } else if (message.type === 'DOWNLOAD') {
+    download()
   } else {
     drawPoint(message)
   }

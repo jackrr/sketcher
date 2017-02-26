@@ -1,7 +1,6 @@
 import xs from 'xstream'
 import isolate from '@cycle/isolate'
 import { canvas, div, a } from '@cycle/dom'
-import Sketch from './Sketch'
 
 function mobile() {
   return navigator.userAgent.match(/iphone|Android/ig)
@@ -85,16 +84,7 @@ function mobileIntent(DOM) {
 
 function intent(DOM) {
   const point$ = mobile() ? mobileIntent(DOM) : browserIntent(DOM)
-  const request$ = DOM.select('a.reset').events('click')
-    .map(e => {
-      return {
-        url: '/reset',
-        method: 'GET',
-        category: 'reset'
-      }
-    })
-
-  return { point$, request$ }
+  return { point$ }
 }
 
 function model(props$) {
@@ -108,21 +98,19 @@ function view(state$) {
   return state$
     .map(state =>
       div('.board-area', [
-        canvas('#board', { attrs: { height: 800, width: 800 }}),
-        a('.reset', '(reset)')
+        canvas('#board', { attrs: { height: 800, width: 800 }})
       ])
     )
 }
 
 export default function Board(sources) {
-  const { point$, request$ } = intent(sources.DOM)
+  const { point$ } = intent(sources.DOM)
   const state$ = model(sources.props)
   const vtree$ = view(state$)
 
   const sinks = {
     DOM: vtree$,
-    points: point$,
-    requests: request$
+    points: point$
   }
 
   return sinks

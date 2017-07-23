@@ -7,7 +7,7 @@ let currentLineId = null
 let queue = []
 
 function ensureCanvas(selector) {
-  if (ctx) return;
+  if (ctx) return
   elem = document.querySelector(selector)
   if (elem) {
     ctx = elem.getContext('2d')

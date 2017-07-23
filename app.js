@@ -1,14 +1,15 @@
 const express = require('express')
-const WebSocket = require('ws');
+const WebSocket = require('ws')
+const board = require('board')
 const PRODUCTION = process.env.NODE_ENV === 'production'
 
-Error.stackTraceLimit = 100;
+Error.stackTraceLimit = 100
 
 const app = express()
 const wss = new WebSocket.Server({
   perMessageDeflate: false,
   port: PRODUCTION ? 8000 : 8080
-});
+})
 
 /*
 *
@@ -71,7 +72,7 @@ wss.on('connection', (ws) => {
       }
     })
   })
-});
+})
 
 /*
 *

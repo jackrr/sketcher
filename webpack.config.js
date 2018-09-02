@@ -1,21 +1,27 @@
+const path = require('path');
+
 module.exports = {
   entry: './public/main.js',
   output: {
-    path: './public/bin',
+    path: path.resolve(__dirname, 'public/bin'),
     filename: 'main.bundle.js'
   },
   devtool: 'source-map',
   module: {
-    loaders: [{
+    rules: [{
       test: /\.json?$/,
-      loader: 'json'
+      use: {
+        loader: 'json'
+      }
     }, {
       test: /\.js$/,
       exclude: /node_modules/,
-      loader: 'babel-loader',
-      query: {
-        presets: ['es2015'],
-        plugins: ['transform-object-rest-spread']
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-env'],
+          plugins: [require('@babel/plugin-proposal-object-rest-spread')]
+        }
       }
     }]
   }

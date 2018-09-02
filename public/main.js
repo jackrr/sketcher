@@ -8,6 +8,7 @@ import { makeHTTPDriver } from '@cycle/http'
 import Board from './components/Board'
 import ActionPanel from './components/ActionPanel'
 
+
 function main(sources) {
   const wsEvent$ = sources.websocket
     .filter(message => {

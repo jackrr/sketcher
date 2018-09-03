@@ -9,11 +9,12 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 func (p *ClientPool) Handler() func(w http.ResponseWriter, r *http.Request) {
-	p.run()
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -21,7 +22,13 @@ func (p *ClientPool) Handler() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		client := &Client{pool: p, conn: conn, send: make(chan []byte, 256)}
+		client := &Client{
+			pool: p,
+			conn: conn,
+			send: make(chan []byte, 256),
+		}
 		client.pool.register <- client
+		go client.writePump()
+		go client.readPump()
 	}
 }
